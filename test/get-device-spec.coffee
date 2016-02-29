@@ -24,7 +24,7 @@ describe 'Get Device', ->
         @getDevice = @meshblu
           .get '/v2/devices/hello-uuid'
           .set 'Authorization', "Basic #{auth}"
-          .reply 200, device: uuid: 'hello-uuid'
+          .reply 200, uuid: 'hello-uuid'
 
         @sut.device "hello-uuid", (error, @device) => done error
 
