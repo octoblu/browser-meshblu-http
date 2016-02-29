@@ -3,13 +3,34 @@ node_js:
 - '5'
 addons:
   code_climate:
-    repo_token: "<REPO TOKEN GOES HERE>"
+    repo_token: "2f5da113d3de498ddf79fa8970b8bd64eb74d092ab4abc1732aba9853cc326de"
 before_script:
 - npm install -g codeclimate-test-reporter
 after_script:
 - codeclimate-test-reporter < coverage/lcov.info
+before_deploy:
+- npm install browserify@12.0.2 coffeeify@2.0.1
+- mkdir -p deploy/browser-meshblu-http/latest
+- mkdir -p deploy/browser-meshblu-http/$TRAVIS_TAG
+- node_modules/.bin/browserify -s MeshbluHttp -t coffeeify index.coffee > deploy/browser-meshblu-http/latest/meshblu-http.bundle.js
+- gzip deploy/browser-meshblu-http/latest/meshblu-http.bundle.js
+- mv deploy/browser-meshblu-http/latest/meshblu-http.bundle.js.gz deploy/browser-meshblu-http/latest/meshblu-http.bundle.js
+- cp deploy/browser-meshblu-http/latest/meshblu-http.bundle.js deploy/browser-meshblu-http/$TRAVIS_TAG/meshblu-http.bundle.js
 deploy:
-  provider: npm
+- provider: s3
+  access_key_id: AKIAJH2D5IPIRHYJT5IA
+  secret_access_key:
+    secure: "FDVdkajF9DhaQKJ5M0jXzcIE2W8ng0K+kIVGt2VXuQEfRlvSyhGgy0q0nziyOk5/v93WD4g3R7kJ2ZKvAIG7+AY5BfM56SM2K1cMUgFe2rMosBdP/QnczH/bN42lbpagPLs0hxyLdJkNq1j89NVlRYbKSjzOEMiQU47c53PZam0e666cULkfQg0u2VF6bBuYkvzQMu99K9sOLLAKT5VaIgxt9t8ZaB/WTbTmc6747uZBY3xjFGjfSlH7+mQXquYSLBJpeADkJ9c1ZXQh3DtB6y4KrsTECkZAmOlIFPAFCHmx45IMUKL2Xsh1AmEtHKPneABIE4yoijCPACZl/OintaqjQw88WUXymjda58zI+CzLu3SD+TV18NM3FcP4s1a/ebGuS9JqAxvuUrYHjVYRfiiuuKYif5+K6Zmn0oW0ExWQWcBIQPpq85X1IlrgwUvA5jLDWEcW0Zk5Go5UBbQ8ZBC6VWEZ5UyqFVq8S+n8X99gFbdykZgWsqn1WSAfeAI1zH5lOqs0MWs8SNDTdgz1JitYCw1BdCph57CaNLMV2JIOpo0yqMVHh9I3Bz8cDM4Qne4ZmSVLbSQ4CjCAtwt/zh0DK9aD2byaYeL0GMn+hEl7rTPP27VOmwvYwYlUXiLJqtHQSuQT1D4rHZgrccm3JIAeLOZLVu2WLrJup7nhGr8="
+  bucket: octoblu-cdn
+  region: us-west-2
+  skip_cleanup: true
+  detect_encoding: true
+  local-dir: deploy
+  upload-dir: js
+  on:
+    tags: true
+    all_branches: true
+- provider: npm
   email: serveradmin@octoblu.com
   api_key:
     secure: LHWrm7ApDiZfO5wPeYI+lEGL4dd+QvAdsYobYyrL2UMnxb+km6VBnACb0PF5pxVb4bjJeIwwPijj44/vW/1xD3h5/kkZEM76gnKd4CD5gJ5nG2MDoyfdqDB3j0mJ4uMSdqnVX6e9eQva2+Jmjp7yZIDFOB9iUNSbAIOdiLJU/e2nic6KGcf/c8k57cC3L+a8VWfwb+9aF8UAGNsXx4xw1H+3Zalk9UsvfkXORw8wFAoskO1eKitXjfl+jUTOpK9iR/oc91ghFtUZaj/p/WtS92rYeMkMoWPcvuBN9kMP08g9cUuv7fvYMKs2M42uq80CTB88WfDriSVwSHZyko5KUjG+uaJ3+AkONQ7+P93Ho+KxFrubnyHNbeA1z3MYEyvutehLXXniUi56FFWGWcEQw9UBTlpbPcKPq+gRejPsvREodJ04Q9Dk4pT87IbLho1TAWkl/cicStaHsF1ONbRGUEQB+yCgi0mlSZxIhWLf3cLMeni6kELtprdyES+YWciD3KK12auJuVwpxrDYKu0ewX8KvzwsbvSASsCVd5/l68juaLc7MRn4l7GlofaMREKcS4wFSSzVX7pGp4sk7S5qW8Jw2wFYrmYjNeLXVNNU4FN9PkLmm7Na0G/VSxycTG5N9Pa4F2yIciJlD40ggoS69tkKgoZKVOCwv1FOcNbi0ss=
