@@ -25,16 +25,29 @@ class MeshbluHttp
         callback null, response.body.token
 
   device: (uuid, callback) =>
-    debug 'getDevice'
+    debug 'get device'
     request
       .get @_url "/v2/devices/#{uuid}"
       .auth @uuid, @token
       .end (error, response) =>
-        debug 'getDevice response', response.status
+        debug 'get device response', response.status
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body.device
+
+  devices: (query, callback) =>
+    debug 'get devices'
+    request
+      .get @_url "/v2/devices"
+      .auth @uuid, @token
+      .query query
+      .end (error, response) =>
+        debug 'get devices response', response.status
+        return callback null if response.notFound
+        return callback new Error 'Invalid Response Code' unless response.ok
+        return callback new Error 'Invalid Response' if _.isEmpty response.body
+        callback null, response.body.devices ? []
 
   removeTokenByQuery: (uuid, options={}, callback) =>
     debug 'removeTokenByQuery'
