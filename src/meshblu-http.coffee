@@ -46,8 +46,21 @@ class MeshbluHttp
         debug 'get devices response', response.status
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
-        return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body ? []
+
+  register: (body, callback) =>
+    debug 'register'
+    request
+      .post @_url "/devices"
+      .auth @uuid, @token
+      .send body
+      .end (error, response) =>
+        debug 'register response', response.status
+        return callback null if response.notFound
+        return callback new Error 'Invalid Response Code' unless response.ok
+        return callback new Error 'Invalid Response' if _.isEmpty response.body
+        callback null, response.body
+
 
   removeTokenByQuery: (uuid, options={}, callback) =>
     debug 'removeTokenByQuery'
@@ -59,6 +72,28 @@ class MeshbluHttp
         debug 'removeTokenByQuery response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
+
+  update: (uuid, body, callback) =>
+    debug 'update'
+    request
+      .patch @_url "/v2/devices/#{uuid}"
+      .auth @uuid, @token
+      .send body
+      .end (error, response) =>
+        debug 'update response', response.status
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null, response.body
+
+  updateDangerously: (uuid, body, callback) =>
+    debug 'update dangerously'
+    request
+      .put @_url "/v2/devices/#{uuid}"
+      .auth @uuid, @token
+      .send body
+      .end (error, response) =>
+        debug 'update dangerously response', response.status
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null, response.body
 
   whoami: (callback) =>
     debug 'whoami'
