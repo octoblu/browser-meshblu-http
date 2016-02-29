@@ -1,2 +1,2 @@
 require('coffee-script/register');
-module.exports = require('./src/meshblu-http.coffee');
+module.exports = require('./index.coffee');
