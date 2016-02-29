@@ -25,7 +25,7 @@ describe 'Get Devices', ->
           .get '/v2/devices'
           .query type: 'flow', owner: 'hello-uuid'
           .set 'Authorization', "Basic #{auth}"
-          .reply 200, devices: [
+          .reply 200, [
             uuid: 'howdy-uuid', owner: 'hello-uuid', type: 'flow'
           ]
 

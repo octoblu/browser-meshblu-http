@@ -47,7 +47,7 @@ class MeshbluHttp
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body.devices ? []
+        callback null, response.body ? []
 
   removeTokenByQuery: (uuid, options={}, callback) =>
     debug 'removeTokenByQuery'
