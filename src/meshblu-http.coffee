@@ -1,6 +1,7 @@
 _       = require 'lodash'
 request = require 'superagent'
 url     = require 'url'
+qs      = require 'qs'
 debug   = require('debug')('meshblu-http')
 
 class MeshbluHttp
@@ -41,7 +42,7 @@ class MeshbluHttp
     request
       .get @_url "/v2/devices"
       .auth @uuid, @token
-      .query query
+      .query qs.stringify query
       .end (error, response) =>
         debug 'get devices response', response.status
         return callback null if response.notFound

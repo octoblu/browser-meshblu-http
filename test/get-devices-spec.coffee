@@ -38,3 +38,24 @@ describe 'Get Devices', ->
         expect(@devices).to.deep.equal [
           uuid: 'howdy-uuid', owner: 'hello-uuid', type: 'flow'
         ]
+
+    describe 'when performing a complex query', ->
+      beforeEach (done) ->
+        auth = new Buffer('some-uuid:some-token').toString('base64')
+        @getDevices = @meshblu
+          .get '/v2/devices'
+          .query {uuid: {$in: ['howdy-uuid']}}
+          .set 'Authorization', "Basic #{auth}"
+          .reply 200, [
+            uuid: 'howdy-uuid', owner: 'hello-uuid', type: 'flow'
+          ]
+
+        @sut.devices {uuid: {$in: ['howdy-uuid']}}, (error, @devices) => done error
+
+      it 'should call get device', ->
+        @getDevices.done()
+
+      it 'should have devices', ->
+        expect(@devices).to.deep.equal [
+          uuid: 'howdy-uuid', owner: 'hello-uuid', type: 'flow'
+        ]
