@@ -62,7 +62,6 @@ class MeshbluHttp
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body
 
-
   removeTokenByQuery: (uuid, options={}, callback) =>
     debug 'removeTokenByQuery'
     request
@@ -73,6 +72,16 @@ class MeshbluHttp
         debug 'removeTokenByQuery response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
+
+  unregister: (uuid, callback) =>
+    debug 'unregister'
+    request
+      .del @_url "/devices/#{uuid}"
+      .auth @uuid, @token
+      .end (error, response) =>
+        debug 'unregister response', response.status
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null, response.body
 
   update: (uuid, body, callback) =>
     debug 'update'
