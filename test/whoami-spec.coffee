@@ -42,3 +42,21 @@ describe 'Whoami', ->
             {uuid:'cheers-uuid'}
           ]
         expect(@device).to.deep.equal device
+
+
+describe 'when constructed with a url that goes nowhere', ->
+  beforeEach ->
+    meshbluConfig =
+      hostname: 'localhost'
+      port: 0xd00d
+      uuid: 'some-uuid'
+      token: 'some-token'
+
+    @sut = new MeshbluHttp meshbluConfig
+
+  describe 'when whoami is called', ->
+    beforeEach (done) ->
+      @sut.whoami (@error) => done()
+
+    it "should yield an error instead of blowing up randomly someplace in the code we can't catch", ->
+      expect(@error).to.exist

@@ -7,7 +7,7 @@ class MeshbluHttp
   constructor: (meshbluConfig) ->
     throw new Error("MeshbluHttp only allows hostname: 'server' is not allowed") if meshbluConfig?.server
     throw new Error("MeshbluHttp only allows hostname: 'host' is not allowed") if meshbluConfig?.host
-          
+
     options = _.extend port: 443, hostname: 'meshblu.octoblu.com', meshbluConfig
     {@uuid, @token, @hostname, @port, @protocol} = options
     @protocol = null if @protocol == 'websocket'
@@ -22,6 +22,7 @@ class MeshbluHttp
       .auth @uuid, @token
       .send options
       .end (error, response) =>
+        return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body.token
@@ -31,6 +32,7 @@ class MeshbluHttp
       .get @_url "/v2/devices/#{uuid}"
       .auth @uuid, @token
       .end (error, response) =>
+        return callback error if error?
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
@@ -42,6 +44,7 @@ class MeshbluHttp
       .auth @uuid, @token
       .query qs.stringify query
       .end (error, response) =>
+        return callback error if error?
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body ? []
@@ -52,6 +55,7 @@ class MeshbluHttp
       .auth @uuid, @token
       .send body
       .end (error, response) =>
+        return callback error if error?
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
@@ -63,6 +67,7 @@ class MeshbluHttp
       .query options
       .auth @uuid, @token
       .end (error, response) =>
+        return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
@@ -71,6 +76,7 @@ class MeshbluHttp
       .del @_url "/devices/#{uuid}"
       .auth @uuid, @token
       .end (error, response) =>
+        return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
@@ -80,6 +86,7 @@ class MeshbluHttp
       .auth @uuid, @token
       .send body
       .end (error, response) =>
+        return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
@@ -89,6 +96,7 @@ class MeshbluHttp
       .auth @uuid, @token
       .send body
       .end (error, response) =>
+        return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
@@ -97,6 +105,7 @@ class MeshbluHttp
       .get @_url '/v2/whoami'
       .auth @uuid, @token
       .end (error, response) =>
+        return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Device' if _.isEmpty response.body
         callback null, response.body
