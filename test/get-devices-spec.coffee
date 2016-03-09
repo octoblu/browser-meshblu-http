@@ -11,7 +11,7 @@ describe 'Get Devices', ->
   describe 'when constructed with valid meshbluConfig', ->
     beforeEach ->
       meshbluConfig =
-        server: 'localhost'
+        hostname: 'localhost'
         port: 0xd00d
         uuid: 'some-uuid'
         token: 'some-token'

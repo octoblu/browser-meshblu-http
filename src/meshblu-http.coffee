@@ -1,122 +1,112 @@
-_       = require 'lodash'
-request = require 'superagent'
-url     = require 'url'
-qs      = require 'qs'
-debug   = require('debug')('meshblu-http')
+_        = require 'lodash'
+request  = require 'superagent'
+ParseUrl = require 'url-parse'
+qs       = require 'qs'
 
 class MeshbluHttp
   constructor: (meshbluConfig) ->
-    options = _.extend port: 443, server: 'meshblu.octoblu.com', meshbluConfig
-    {@uuid, @token, @server, @port, @protocol} = options
+    throw new Error("MeshbluHttp only allows hostname: 'server' is not allowed") if meshbluConfig?.server
+    throw new Error("MeshbluHttp only allows hostname: 'host' is not allowed") if meshbluConfig?.host
+          
+    options = _.extend port: 443, hostname: 'meshblu.octoblu.com', meshbluConfig
+    {@uuid, @token, @hostname, @port, @protocol} = options
     @protocol = null if @protocol == 'websocket'
     try @port = parseInt @port
-    @protocol ?= 'http'
-    @protocol = 'https' if @port == 443
+    @protocol ?= 'https:' if @port == 443
+    @protocol ?= 'http:'
 
   generateAndStoreToken: (uuid, options={}, callback) =>
-    debug 'generateAndStoreToken'
+    console.log @_url "/devices/#{uuid}/tokens"
     request
       .post @_url "/devices/#{uuid}/tokens"
       .auth @uuid, @token
       .send options
       .end (error, response) =>
-        debug 'generateAndStoreToken response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body.token
 
   device: (uuid, callback) =>
-    debug 'get device'
     request
       .get @_url "/v2/devices/#{uuid}"
       .auth @uuid, @token
       .end (error, response) =>
-        debug 'get device response', response.status
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body ? {}
 
   devices: (query, callback) =>
-    debug 'get devices'
     request
       .get @_url "/v2/devices"
       .auth @uuid, @token
       .query qs.stringify query
       .end (error, response) =>
-        debug 'get devices response', response.status
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body ? []
 
   register: (body, callback) =>
-    debug 'register'
     request
       .post @_url "/devices"
       .auth @uuid, @token
       .send body
       .end (error, response) =>
-        debug 'register response', response.status
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body
 
   removeTokenByQuery: (uuid, options={}, callback) =>
-    debug 'removeTokenByQuery'
     request
       .del @_url "/devices/#{uuid}/tokens"
       .query options
       .auth @uuid, @token
       .end (error, response) =>
-        debug 'removeTokenByQuery response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
   unregister: (uuid, callback) =>
-    debug 'unregister'
     request
       .del @_url "/devices/#{uuid}"
       .auth @uuid, @token
       .end (error, response) =>
-        debug 'unregister response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
   update: (uuid, body, callback) =>
-    debug 'update'
     request
       .patch @_url "/v2/devices/#{uuid}"
       .auth @uuid, @token
       .send body
       .end (error, response) =>
-        debug 'update response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
   updateDangerously: (uuid, body, callback) =>
-    debug 'update dangerously'
     request
       .put @_url "/v2/devices/#{uuid}"
       .auth @uuid, @token
       .send body
       .end (error, response) =>
-        debug 'update dangerously response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
   whoami: (callback) =>
-    debug 'whoami'
     request
       .get @_url '/v2/whoami'
       .auth @uuid, @token
       .end (error, response) =>
-        debug 'whoami response', response.status
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Device' if _.isEmpty response.body
         callback null, response.body
 
   _url: (pathname) =>
-    url.format {@protocol, hostname:@server, @port, pathname}
+    theUrl = new ParseUrl('')
+    theUrl.set 'hostname', @hostname
+    theUrl.set 'protocol', @protocol
+    theUrl.set 'port', @port
+    theUrl.set 'pathname', pathname
+    return theUrl.toString()
 
 module.exports = MeshbluHttp
