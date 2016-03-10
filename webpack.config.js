@@ -7,8 +7,8 @@ module.exports = {
     './src/meshblu-http.coffee'
   ],
   output: {
-    path: path.join(__dirname, 'deploy', 'browser-meshblu-http', 'latest'),
-    filename: 'meshblu-http.bundle.js'
+    path: path.join(__dirname, 'deploy', 'browser-meshblu-http', 'uncompressed'),
+    filename: 'meshblu-http.bundle.uncompressed.js'
   },
   module: {
     loaders: [
@@ -16,6 +16,8 @@ module.exports = {
     ]
   },
   plugins: [
-     new CompressionPlugin({})
+     new CompressionPlugin({
+       asset: 'meshblu-http.bundle.js'
+     })
    ]
 };
