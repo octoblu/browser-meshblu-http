@@ -50,9 +50,9 @@ class MeshbluHttp
         callback null, response.body ? []
 
   register: (body, callback) =>
-    request
-      .post @_url "/devices"
-      .auth @uuid, @token
+    req = request.post @_url "/devices"
+    req.auth @uuid, @token if @uuid? && @token?
+    req
       .send body
       .end (error, response) =>
         return callback error if error?
@@ -60,6 +60,7 @@ class MeshbluHttp
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body
+
 
   removeTokenByQuery: (uuid, options={}, callback) =>
     request
