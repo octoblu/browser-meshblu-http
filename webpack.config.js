@@ -1,5 +1,6 @@
-var path          = require('path');
-var webpack       = require('webpack');
+var path              = require('path');
+var webpack           = require('webpack');
+var CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
   entry: [
@@ -13,5 +14,8 @@ module.exports = {
     loaders: [
       { test: /\.coffee$/, loader: "coffee" }
     ]
-  }
+  },
+  plugins: [
+     new CompressionPlugin({})
+   ]
 };
