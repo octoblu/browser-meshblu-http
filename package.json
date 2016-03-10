@@ -1,11 +1,11 @@
 {
   "name": "browser-meshblu-http",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Meshblu Client for the Browser",
   "main": "index.js",
   "scripts": {
     "test": "istanbul cover _mocha -- -R spec --require coffee-coverage/register-istanbul",
-    "bundle": "webpack"
+    "bundle": "webpack -p"
   },
   "repository": {
     "type": "git",
