@@ -7,7 +7,7 @@ module.exports = {
     './src/meshblu-http.coffee'
   ],
   output: {
-    path: path.join(__dirname, 'deploy', 'browser-meshblu-http', 'uncompressed'),
+    path: path.join(__dirname, 'deploy', 'browser-meshblu-http', 'latest'),
     filename: 'meshblu-http.bundle.uncompressed.js'
   },
   module: {
