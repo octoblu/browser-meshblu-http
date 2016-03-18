@@ -13,17 +13,13 @@ describe 'Register', ->
       meshbluConfig =
         hostname: 'localhost'
         port: 0xd00d
-        uuid: 'some-uuid'
-        token: 'some-token'
 
       @sut = new MeshbluHttp meshbluConfig
 
     describe 'when registering a device', ->
       beforeEach (done) ->
-        auth = new Buffer('some-uuid:some-token').toString('base64')
         @register = @meshblu
           .post '/devices'
-          .set 'Authorization', "Basic #{auth}"
           .send type: 'flow', owner: 'hello-uuid'
           .reply 200, uuid: 'howdy-uuid', token: 'howdy-token', owner: 'hello-uuid', type: 'flow'
 

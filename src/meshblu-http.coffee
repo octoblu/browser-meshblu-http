@@ -15,18 +15,6 @@ class MeshbluHttp
     @protocol ?= 'https:' if @port == 443
     @protocol ?= 'http:'
 
-  generateAndStoreToken: (uuid, options={}, callback) =>
-    console.log @_url "/devices/#{uuid}/tokens"
-    request
-      .post @_url "/devices/#{uuid}/tokens"
-      .auth @uuid, @token
-      .send options
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body.token
-
   device: (uuid, callback) =>
     request
       .get @_url "/v2/devices/#{uuid}"
@@ -49,10 +37,29 @@ class MeshbluHttp
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body ? []
 
+  generateAndStoreToken: (uuid, options={}, callback) =>
+    request
+      .post @_url "/devices/#{uuid}/tokens"
+      .auth @uuid, @token
+      .send options
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        return callback new Error 'Invalid Response' if _.isEmpty response.body
+        callback null, response.body.token
+
+  createSubscriptions: ({subscriberUuid, emitterUuid, type}, callback) =>
+    request
+      .post @_url "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}"
+      .auth @uuid, @token
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null
+
   register: (body, callback) =>
-    req = request.post @_url "/devices"
-    req.auth @uuid, @token if @uuid? && @token?
-    req
+    request
+      .post @_url "/devices"
       .send body
       .end (error, response) =>
         return callback error if error?
@@ -60,7 +67,6 @@ class MeshbluHttp
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body
-
 
   removeTokenByQuery: (uuid, options={}, callback) =>
     request
