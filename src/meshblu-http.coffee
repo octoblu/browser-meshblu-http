@@ -48,7 +48,7 @@ class MeshbluHttp
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body.token
 
-  createSubscriptions: ({subscriberUuid, emitterUuid, type}, callback) =>
+  createSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
     request
       .post @_url "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}"
       .auth @uuid, @token

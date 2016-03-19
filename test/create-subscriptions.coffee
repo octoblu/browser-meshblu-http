@@ -26,7 +26,7 @@ describe 'Create Subscriptions', ->
           .set 'Authorization', "Basic #{auth}"
           .reply 204
 
-        @sut.createSubscriptions {subscriberUuid: 'hello-uuid', emitterUuid: 'howdy-uuid', type: 'broadcast'}, (error, @result) => done error
+        @sut.createSubscription {subscriberUuid: 'hello-uuid', emitterUuid: 'howdy-uuid', type: 'broadcast'}, (error, @result) => done error
 
       it 'should call create subscription', ->
         @createSubscription.done()
