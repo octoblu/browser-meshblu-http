@@ -15,6 +15,15 @@ class MeshbluHttp
     @protocol ?= 'https:' if @port == 443
     @protocol ?= 'http:'
 
+  claimdevice: (uuid, callback) =>
+    request
+      .post @_url "/claimdevice/#{uuid}"
+      .auth @uuid, @token
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null, response.body
+
   createSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
     request
       .post @_url "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}"
