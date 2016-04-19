@@ -57,6 +57,15 @@ class MeshbluHttp
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body.token
 
+  listSubscriptions: ({subscriberUuid}, callback) =>
+    request
+      .get @_url "/v2/devices/#{subscriberUuid}/subscriptions"
+      .auth @uuid, @token
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null, response.body
+
   message: (message, callback) =>
    request
     .post @_url "/messages"
