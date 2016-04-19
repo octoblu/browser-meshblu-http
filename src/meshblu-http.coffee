@@ -97,6 +97,15 @@ class MeshbluHttp
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
+  revokeToken: (uuid, token, callback=->) =>
+    request
+      .del @_url "/devices/#{uuid}/tokens/#{token}"
+      .auth @uuid, @token
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null
+
   unregister: (uuid, callback) =>
     request
       .del @_url "/devices/#{uuid}"
