@@ -15,6 +15,15 @@ class MeshbluHttp
     @protocol ?= 'https:' if @port == 443
     @protocol ?= 'http:'
 
+  createSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
+    request
+      .post @_url "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}"
+      .auth @uuid, @token
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null
+
   device: (uuid, callback) =>
     request
       .get @_url "/v2/devices/#{uuid}"
@@ -48,13 +57,14 @@ class MeshbluHttp
         return callback new Error 'Invalid Response' if _.isEmpty response.body
         callback null, response.body.token
 
-  createSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
-    request
-      .post @_url "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}"
-      .auth @uuid, @token
-      .end (error, response) =>
+  message: (message, callback) =>
+   request
+    .post @_url "/messages"
+    .auth @uuid, @token
+    .send message
+    .end (error, response) =>
         return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
+        return callback new Error 'Invalid Message' unless response.ok
         callback null
 
   register: (body, callback) =>
