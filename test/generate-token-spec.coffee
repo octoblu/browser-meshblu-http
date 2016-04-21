@@ -25,7 +25,7 @@ describe 'Remove Token', ->
           .post '/devices/hello-uuid/tokens'
           .set 'Authorization', "Basic #{auth}"
           .send tag: 'remove-this-tag'
-          .reply 200, token: 'generated-token'
+          .reply 200, token: 'generated-token', uuid: 'some-uuid'
 
         @sut.generateAndStoreToken 'hello-uuid', tag: 'remove-this-tag', (error, @result) => done error
 
@@ -33,4 +33,4 @@ describe 'Remove Token', ->
         @generateToken.done()
 
       it 'should yield the generated token', ->
-        expect(@result).to.equal 'generated-token'
+        expect(@result).to.deep.equal token: 'generated-token', uuid: 'some-uuid'

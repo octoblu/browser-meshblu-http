@@ -42,7 +42,7 @@ class MeshbluHttp
         return callback null if response.notFound
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body ? {}
+        callback null, response.body
 
   devices: (query, callback) =>
     request
@@ -64,7 +64,7 @@ class MeshbluHttp
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body.token
+        callback null, response.body
 
   listSubscriptions: ({subscriberUuid}, callback) =>
     request
