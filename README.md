@@ -4,3 +4,7 @@
 [![Test Coverage](https://codeclimate.com/github/octoblu/browser-meshblu-http/badges/coverage.svg)](https://codeclimate.com/github/octoblu/browser-meshblu-http)
 [![npm version](https://badge.fury.io/js/browser-meshblu-http.svg)](http://badge.fury.io/js/browser-meshblu-http)
 [![Gitter](https://badges.gitter.im/octoblu/help.svg)](https://gitter.im/octoblu/help)
+
+You may include meshblu-http in your browser by using the following link:
+
+https://cdn.octoblu.com/js/meshblu-http/latest/meshblu-http.bundle.js
