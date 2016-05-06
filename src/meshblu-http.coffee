@@ -60,7 +60,7 @@ class MeshbluHttp
     request
       .post @_url "/search/devices"
       .auth @uuid, @token
-      .set 'X-MESHBLU-PROJECTION', projection
+      .set 'X-MESHBLU-PROJECTION', JSON.stringify projection
       .send query
       .end (error, response) =>
         return callback error if error?
