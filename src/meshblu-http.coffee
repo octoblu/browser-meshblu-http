@@ -16,27 +16,21 @@ class MeshbluHttp
     @protocol ?= 'http:'
 
   claimdevice: (uuid, callback) =>
-    request
-      .post @_url "/claimdevice/#{uuid}"
-      .auth @uuid, @token
+    @_request('post', "/claimdevice/#{uuid}")
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
   createSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
-    request
-      .post @_url "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}"
-      .auth @uuid, @token
+    @_request('post', "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}")
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
   device: (uuid, callback) =>
-    request
-      .get @_url "/v2/devices/#{uuid}"
-      .auth @uuid, @token
+    @_request('get', "/v2/devices/#{uuid}")
       .end (error, response) =>
         return callback error if error?
         return callback null if response.notFound
@@ -45,9 +39,7 @@ class MeshbluHttp
         callback null, response.body
 
   devices: (query, callback) =>
-    request
-      .get @_url "/v2/devices"
-      .auth @uuid, @token
+    @_request('get', '/v2/devices')
       .query qs.stringify query
       .end (error, response) =>
         return callback error if error?
@@ -57,9 +49,7 @@ class MeshbluHttp
 
   search: ({query, projection}, callback) =>
     projection ?= {}
-    request
-      .post @_url "/search/devices"
-      .auth @uuid, @token
+    @_request('post', '/search/devices')
       .set 'X-MESHBLU-PROJECTION', JSON.stringify projection
       .send query
       .end (error, response) =>
@@ -69,9 +59,7 @@ class MeshbluHttp
         callback null, response.body ? []
 
   generateAndStoreToken: (uuid, options={}, callback) =>
-    request
-      .post @_url "/devices/#{uuid}/tokens"
-      .auth @uuid, @token
+    @_request('post', "/devices/#{uuid}/tokens")
       .send options
       .end (error, response) =>
         return callback error if error?
@@ -80,18 +68,14 @@ class MeshbluHttp
         callback null, response.body
 
   listSubscriptions: ({subscriberUuid}, callback) =>
-    request
-      .get @_url "/v2/devices/#{subscriberUuid}/subscriptions"
-      .auth @uuid, @token
+    @_request('get', "/v2/devices/#{subscriberUuid}/subscriptions")
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
   message: (message, callback) =>
-   request
-    .post @_url "/messages"
-    .auth @uuid, @token
+   @_request('post', '/messages')
     .send message
     .end (error, response) =>
         return callback error if error?
@@ -99,8 +83,7 @@ class MeshbluHttp
         callback null
 
   register: (body, callback) =>
-    request
-      .post @_url "/devices"
+    @_request('post', '/devices')
       .send body
       .end (error, response) =>
         return callback error if error?
@@ -110,37 +93,29 @@ class MeshbluHttp
         callback null, response.body
 
   removeTokenByQuery: (uuid, options={}, callback) =>
-    request
-      .del @_url "/devices/#{uuid}/tokens"
+    @_request('del', "/devices/#{uuid}/tokens")
       .query options
-      .auth @uuid, @token
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
   revokeToken: (uuid, token, callback=->) =>
-    request
-      .del @_url "/devices/#{uuid}/tokens/#{token}"
-      .auth @uuid, @token
+    @_request('del', "/devices/#{uuid}/tokens/#{token}")
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
   unregister: (uuid, callback) =>
-    request
-      .del @_url "/devices/#{uuid}"
-      .auth @uuid, @token
+    @_request('del', "/devices/#{uuid}")
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body
 
   update: (uuid, body, callback) =>
-    request
-      .patch @_url "/v2/devices/#{uuid}"
-      .auth @uuid, @token
+    @_request('patch', "/v2/devices/#{uuid}")
       .send body
       .end (error, response) =>
         return callback error if error?
@@ -148,9 +123,7 @@ class MeshbluHttp
         callback null, response.body
 
   updateDangerously: (uuid, body, callback) =>
-    request
-      .put @_url "/v2/devices/#{uuid}"
-      .auth @uuid, @token
+    @_request('put', "/v2/devices/#{uuid}")
       .send body
       .end (error, response) =>
         return callback error if error?
@@ -158,9 +131,7 @@ class MeshbluHttp
         callback null, response.body
 
   whoami: (callback) =>
-    request
-      .get @_url '/v2/whoami'
-      .auth @uuid, @token
+    @_request('get', '/v2/whoami')
       .end (error, response) =>
         return callback error if error?
         return callback new Error 'Invalid Response Code' unless response.ok
@@ -174,5 +145,13 @@ class MeshbluHttp
     theUrl.set 'port', @port
     theUrl.set 'pathname', pathname
     return theUrl.toString()
+
+  _request: (method, uri) =>
+    theRequest = request[method](@_url uri)
+    if @uuid? && @token?
+      theRequest.auth @uuid, @token
+    theRequest.accept('application/json')
+    theRequest.set('Content-Type', 'application/json')
+    return theRequest
 
 module.exports = MeshbluHttp
