@@ -29,6 +29,13 @@ class MeshbluHttp
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null
 
+  deleteSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
+    @_request('delete', "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}")
+      .end (error, response) =>
+        return callback error if error?
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null
+
   device: (uuid, callback) =>
     @_request('get', "/v2/devices/#{uuid}")
       .end (error, response) =>
