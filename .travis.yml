@@ -4,12 +4,15 @@ node_js:
 addons:
   code_climate:
     repo_token: "2f5da113d3de498ddf79fa8970b8bd64eb74d092ab4abc1732aba9853cc326de"
+branches:
+  only:
+  - "/^v[0-9]/"
 before_script:
 - npm install -g codeclimate-test-reporter
 after_script:
 - codeclimate-test-reporter < coverage/lcov.info
 before_deploy:
-- npm install
+- npm run-script build
 - npm run-script bundle
 - mkdir -p deploy/browser-meshblu-http/$TRAVIS_TAG
 - cp deploy/browser-meshblu-http/latest/meshblu-http.bundle.js deploy/browser-meshblu-http/$TRAVIS_TAG/meshblu-http.bundle.js

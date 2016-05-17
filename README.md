@@ -7,4 +7,8 @@
 
 You may include meshblu-http in your browser by using the following link:
 
-https://cdn.octoblu.com/js/meshblu-http/latest/meshblu-http.bundle.js
+https://cdn.octoblu.com/js/browser-meshblu-http/latest/meshblu-http.bundle.js
+
+-- or --
+
+import MeshbluHttp from 'browser-meshblu-http/dist/meshblu-http.js';
