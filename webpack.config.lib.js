@@ -10,7 +10,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
     library: 'MeshbluHttp',
     path: path.join(__dirname, 'dist'),
-    filename: 'meshblu-http.js'
+    filename: 'bundle.js'
   },
   module: {
     loaders: [

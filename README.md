@@ -11,4 +11,4 @@ https://cdn.octoblu.com/js/browser-meshblu-http/latest/meshblu-http.bundle.js
 
 -- or --
 
-import MeshbluHttp from 'browser-meshblu-http/dist/meshblu-http.js';
+import MeshbluHttp from 'browser-meshblu-http/dist/bundle.js';

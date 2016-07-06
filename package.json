@@ -1,8 +1,12 @@
 {
   "name": "browser-meshblu-http",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "Meshblu Client for the Browser",
-  "main": "dist/meshblu-http.js",
+  "main": "./index.js",
+  "postinstall": "webpack -p",
+  "browser": {
+    "./index.js": "./dist/bundle.js"
+  },
   "scripts": {
     "test": "istanbul cover _mocha -- -R spec --require coffee-coverage/register-istanbul",
     "build": "webpack --config webpack.config.lib.js",
@@ -37,6 +41,7 @@
     "webpack": "^1.12.14"
   },
   "dependencies": {
+    "btoa": "^1.1.2",
     "lodash": "^4.5.1",
     "qs": "^6.1.0",
     "superagent": "^1.8.0",
