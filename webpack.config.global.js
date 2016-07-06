@@ -8,7 +8,7 @@ module.exports = {
   output: {
     library: 'MeshbluHttp',
     path: path.join(__dirname, 'deploy', 'browser-meshblu-http', 'latest'),
-    filename: 'meshblu-http.bundle.uncompressed.js'
+    filename: 'meshblu-http.bundle.js'
   },
   module: {
     loaders: [
