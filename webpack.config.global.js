@@ -1,6 +1,5 @@
 var path              = require('path');
 var webpack           = require('webpack');
-var CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
   entry: [
@@ -13,12 +12,25 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.coffee$/, loader: "coffee" }
+      {
+        test: /\.coffee$/, loader: 'coffee', include: /src/
+      }
     ]
   },
   plugins: [
-     new CompressionPlugin({
-       asset: 'meshblu-http.bundle.js'
-     })
+    new webpack.IgnorePlugin(/^(buffertools)$/), // unwanted "deeper" dependency
+    new webpack.NoErrorsPlugin(),
+    new webpack.optimize.OccurenceOrderPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compressor: {
+        screw_ie8: true,
+        warnings: false
+      }
+    })
    ]
 };

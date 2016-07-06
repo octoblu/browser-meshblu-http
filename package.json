@@ -1,6 +1,6 @@
 {
   "name": "browser-meshblu-http",
-  "version": "5.2.5",
+  "version": "5.2.6",
   "description": "Meshblu Client for the Browser",
   "main": "./index.js",
   "postinstall": "webpack -p",
@@ -39,7 +39,7 @@
     "mocha-istanbul": "^0.2.0",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
-    "webpack": "^1.12.14"
+    "webpack": "^1.13.1"
   },
   "dependencies": {
     "btoa": "^1.1.2",
