@@ -1,7 +1,12 @@
-_        = require 'lodash'
 request  = require 'superagent'
 ParseUrl = require 'url-parse'
 qs       = require 'qs'
+
+
+#It's dumb, but it saves ~60k!
+extend        = require 'lodash/extend'
+isEmpty       = require 'lodash/isEmpty'
+_ = {extend, isEmpty}
 
 class MeshbluHttp
   constructor: (meshbluConfig) ->
