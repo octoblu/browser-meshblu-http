@@ -70,6 +70,17 @@ class MeshbluHttp
         return callback new Error 'Invalid Response Code' unless response.ok
         callback null, response.body ? []
 
+  searchTokens: ({query, projection}, callback) =>
+    projection ?= {}
+    @_request('post', '/search/tokens')
+      .set 'X-MESHBLU-PROJECTION', JSON.stringify projection
+      .send query
+      .end (error, response) =>
+        return callback error if error?
+        return callback null if response.notFound
+        return callback new Error 'Invalid Response Code' unless response.ok
+        callback null, response.body ? []
+
   generateAndStoreToken: (uuid, options={}, callback) =>
     @_request('post', "/devices/#{uuid}/tokens")
       .send options
