@@ -14,7 +14,7 @@ class MeshbluHttp
     throw new Error("MeshbluHttp only allows hostname: 'host' is not allowed") if meshbluConfig?.host
 
     options = _.extend port: 443, hostname: 'meshblu.octoblu.com', meshbluConfig
-    {@uuid, @token, @hostname, @port, @protocol} = options
+    {@uuid, @token, @hostname, @port, @protocol, @bearerToken} = options
     @protocol = null if @protocol == 'websocket'
     try @port = parseInt @port
     @protocol ?= 'https:' if @port == 443
@@ -171,8 +171,9 @@ class MeshbluHttp
 
   _request: (method, uri) =>
     theRequest = request[method](@_url uri)
-    if @uuid? && @token?
-      theRequest.auth @uuid, @token
+
+    theRequest.auth @uuid, @token if @uuid? && @token?
+    theRequest.set('Authorization', "Bearer #{@bearerToken}") if @bearerToken?
     theRequest.accept('application/json')
     theRequest.set('Content-Type', 'application/json')
     return theRequest

@@ -43,6 +43,38 @@ describe 'Whoami', ->
           ]
         expect(@device).to.deep.equal device
 
+  describe 'when constructed with a bearerToken', ->
+    beforeEach ->
+      meshbluConfig =
+        hostname: 'localhost'
+        port: 0xd00d
+        bearerToken: 'this-is-my-b64-encoded-token'
+
+      @sut = new MeshbluHttp meshbluConfig
+
+    describe 'when the device has devices', ->
+      beforeEach (done) ->
+        @whoami = @meshblu
+          .get '/v2/whoami'
+          .set 'Authorization', "Bearer this-is-my-b64-encoded-token"
+          .reply 200,
+            uuid: 'some-uuid',
+            devices: [
+              {uuid:'cheers-uuid'}
+            ]
+
+        @sut.whoami (error, @device) => done error
+
+      it 'should call get device', ->
+        @whoami.done()
+
+      it 'should yield the device', ->
+        device =
+          uuid: 'some-uuid',
+          devices: [
+            {uuid:'cheers-uuid'}
+          ]
+        expect(@device).to.deep.equal device
 
 describe 'when constructed with a url that goes nowhere', ->
   beforeEach ->
