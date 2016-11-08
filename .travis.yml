@@ -4,6 +4,15 @@ node_js:
 addons:
   code_climate:
     repo_token: "2f5da113d3de498ddf79fa8970b8bd64eb74d092ab4abc1732aba9853cc326de"
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
+    - g++-4.8-multilib
+    - gcc-multilib
+    - build-essential
+
 branches:
   only:
   - "/^v[0-9]/"
