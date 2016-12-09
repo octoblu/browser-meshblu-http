@@ -1,7 +1,10 @@
+{afterEach, beforeEach, describe, it} = global
+{expect} = require 'chai'
+
 shmock      = require '@octoblu/shmock'
 MeshbluHttp = require '../'
 
-describe 'Remove Token', ->
+describe 'Generate Token', ->
   beforeEach ->
     @meshblu = shmock 0xd00d
 

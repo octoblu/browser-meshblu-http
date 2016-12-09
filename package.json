@@ -1,6 +1,6 @@
 {
   "name": "browser-meshblu-http",
-  "version": "5.4.1",
+  "version": "6.0.0",
   "description": "Meshblu Client for the Browser",
   "main": "./index.js",
   "browser": {
@@ -35,12 +35,14 @@
     "istanbul": "^0.4.2",
     "mocha": "^2.3.4",
     "mocha-istanbul": "^0.2.0",
+    "server-destroy": "^1.0.1",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
     "webpack": "^1.13.1"
   },
   "dependencies": {
     "btoa": "^1.1.2",
+    "http-dns": "^2.0.5",
     "lodash": "^4.5.1",
     "qs": "^6.1.0",
     "superagent": "^1.8.0",

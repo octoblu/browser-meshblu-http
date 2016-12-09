@@ -1,3 +1,5 @@
+{afterEach, beforeEach, describe, it} = global
+{expect}    = require 'chai'
 shmock      = require '@octoblu/shmock'
 MeshbluHttp = require '../'
 
@@ -26,7 +28,8 @@ describe 'Create Subscriptions', ->
           .set 'Authorization', "Basic #{auth}"
           .reply 204
 
-        @sut.createSubscription {subscriberUuid: 'hello-uuid', emitterUuid: 'howdy-uuid', type: 'broadcast'}, (error, @result) => done error
+        subscription = {subscriberUuid: 'hello-uuid', emitterUuid: 'howdy-uuid', type: 'broadcast'}
+        @sut.createSubscription subscription, (error, @result) => done error
 
       it 'should call create subscription', ->
         @createSubscription.done()

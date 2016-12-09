@@ -1,18 +1,23 @@
-shmock      = require '@octoblu/shmock'
-MeshbluHttp = require '../'
+{afterEach, beforeEach, describe, it} = global
+{expect} = require 'chai'
+
+shmock        = require '@octoblu/shmock'
+enableDestroy = require 'server-destroy'
+MeshbluHttp   = require '../'
 
 describe 'Search Tokens', ->
   beforeEach ->
-    @meshblu = shmock 0xd00d
+    @meshblu = shmock()
+    enableDestroy @meshblu
 
   afterEach (done) ->
-    @meshblu.close => done()
+    @meshblu.destroy done
 
   describe 'when constructed with valid meshbluConfig', ->
     beforeEach ->
       meshbluConfig =
         hostname: 'localhost'
-        port: 0xd00d
+        port: @meshblu.address().port
         uuid: 'some-uuid'
         token: 'some-token'
 

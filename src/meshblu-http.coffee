@@ -1,12 +1,10 @@
-request  = require 'superagent'
-ParseUrl = require 'url-parse'
-qs       = require 'qs'
-
+MeshbluRequest = require './meshblu-request'
 
 #It's dumb, but it saves ~60k!
-extend        = require 'lodash/extend'
-isEmpty       = require 'lodash/isEmpty'
-_ = {extend, isEmpty}
+defaults = require 'lodash/defaults'
+extend   = require 'lodash/extend'
+isEmpty  = require 'lodash/isEmpty'
+_ = {defaults, extend, isEmpty}
 
 class MeshbluHttp
   constructor: (meshbluConfig) ->
@@ -14,168 +12,124 @@ class MeshbluHttp
     throw new Error("MeshbluHttp only allows hostname: 'host' is not allowed") if meshbluConfig?.host
 
     options = _.extend port: 443, hostname: 'meshblu.octoblu.com', meshbluConfig
-    {@uuid, @token, @hostname, @port, @protocol, @bearerToken} = options
-    @protocol = null if @protocol == 'websocket'
-    try @port = parseInt @port
-    @protocol ?= 'https:' if @port == 443
-    @protocol ?= 'http:'
+
+    {@uuid, @token, @bearerToken} = options
+    {protocol, hostname, port} = options
+    {resolveSrv, domain, service, secure} = options
+
+    protocol = null if protocol == 'websocket'
+    try port = parseInt port
+    protocol ?= 'https:' if port == 443
+    protocol ?= 'http:'
+    domain   ?= 'octoblu.com'
+    service  ?= 'meshblu'
+
+    @request = new MeshbluRequest {protocol, hostname, port, resolveSrv, domain, service, secure}
 
   claimdevice: (uuid, callback) =>
-    @_request('post', "/claimdevice/#{uuid}")
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    @request.post "/claimdevice/#{uuid}", options, callback
 
   createSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
-    @_request('post', "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}")
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null
+    options = @_getDefaultRequestOptions()
+    @request.post "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}", options, (error, response) =>
+      return callback error if error?
+      return callback null if _.isEmpty response
+      return callback null, response
 
   deleteSubscription: ({subscriberUuid, emitterUuid, type}, callback) =>
-    @_request('delete', "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}")
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null
+    options = @_getDefaultRequestOptions()
+    @request.delete "/v2/devices/#{subscriberUuid}/subscriptions/#{emitterUuid}/#{type}", options, (error, response) =>
+      return callback error if error?
+      return callback null if _.isEmpty response
+      return callback null, response
 
   device: (uuid, callback) =>
-    @_request('get', "/v2/devices/#{uuid}")
-      .end (error, response) =>
-        return callback error if error?
-        return callback null if response.notFound
-        return callback new Error 'Invalid Response Code' unless response.ok
-        return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    @request.get "/v2/devices/#{uuid}", options, callback
 
   devices: (query, callback) =>
-    @_request('get', '/v2/devices')
-      .query qs.stringify query
-      .end (error, response) =>
-        return callback error if error?
-        return callback null if response.notFound
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body ? []
+    options = @_getDefaultRequestOptions()
+    options.query = query
+    @request.get "/v2/devices", options, callback
 
   search: ({query, projection}, callback) =>
-    projection ?= {}
-    @_request('post', '/search/devices')
-      .set 'X-MESHBLU-PROJECTION', JSON.stringify projection
-      .send query
-      .end (error, response) =>
-        return callback error if error?
-        return callback null if response.notFound
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body ? []
+    options = @_getDefaultRequestOptions()
+    options.body = query
+    options.headers ?= {}
+    options.headers['X-MESHBLU-PROJECTION'] = JSON.stringify projection if projection?
+
+    @request.post '/search/devices', options, (error, response=[]) =>
+      return callback error if error?
+      return callback null, response
 
   searchTokens: ({query, projection}, callback) =>
-    projection ?= {}
-    @_request('post', '/search/tokens')
-      .set 'X-MESHBLU-PROJECTION', JSON.stringify projection
-      .send query
-      .end (error, response) =>
-        return callback error if error?
-        return callback null if response.notFound
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body ? []
+    options = @_getDefaultRequestOptions()
+    options.body = query
+    options.headers ?= {}
+    options.headers['X-MESHBLU-PROJECTION'] = JSON.stringify projection if projection?
 
-  generateAndStoreToken: (uuid, options={}, callback) =>
-    @_request('post', "/devices/#{uuid}/tokens")
-      .send options
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body
+    @request.post '/search/tokens', options, (error, response=[]) =>
+      return callback error if error?
+      return callback null, response
+
+  generateAndStoreToken: (uuid, query={}, callback) =>
+    options = @_getDefaultRequestOptions()
+    options.body = query
+    @request.post "/devices/#{uuid}/tokens", options, (error, response) =>
+      return callback error if error?
+      return callback new Error 'Invalid Response' if _.isEmpty response
+      callback null, response
 
   listSubscriptions: ({subscriberUuid}, callback) =>
-    @_request('get', "/v2/devices/#{subscriberUuid}/subscriptions")
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    @request.get "/v2/devices/#{subscriberUuid}/subscriptions", options, callback
 
   message: (message, callback) =>
-   @_request('post', '/messages')
-    .send message
-    .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Message' unless response.ok
-        callback null
+    options = @_getDefaultRequestOptions()
+    options.body = message
+    @request.post "/messages", options, callback
 
   register: (body, callback) =>
-    @_request('post', '/devices')
-      .send body
-      .end (error, response) =>
-        return callback error if error?
-        return callback null if response.notFound
-        return callback new Error 'Invalid Response Code' unless response.ok
-        return callback new Error 'Invalid Response' if _.isEmpty response.body
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    options.body = body
+    @request.post "/devices", options, (error, response) =>
+      return callback error if error?
+      return callback new Error 'Invalid Response' if _.isEmpty response
+      callback null, response
 
-  removeTokenByQuery: (uuid, options={}, callback) =>
-    @_request('del', "/devices/#{uuid}/tokens")
-      .query options
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null
+  removeTokenByQuery: (uuid, query={}, callback) =>
+    console.log 'removeTokenByQuery', uuid, query
+    options = @_getDefaultRequestOptions()
+    options.query = query
+    @request.delete "/devices/#{uuid}/tokens", options, callback
 
   revokeToken: (uuid, token, callback=->) =>
-    @_request('del', "/devices/#{uuid}/tokens/#{token}")
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null
+    options = @_getDefaultRequestOptions()
+    @request.delete "/devices/#{uuid}/tokens/#{token}", options, callback
 
   unregister: (uuid, callback) =>
-    @_request('del', "/devices/#{uuid}")
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    @request.delete "/devices/#{uuid}", options, callback
 
   update: (uuid, body, callback) =>
-    @_request('patch', "/v2/devices/#{uuid}")
-      .send body
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    options.body = body
+    @request.patch "/v2/devices/#{uuid}", options, callback
 
   updateDangerously: (uuid, body, callback) =>
-    @_request('put', "/v2/devices/#{uuid}")
-      .send body
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    options.body = body
+    @request.put "/v2/devices/#{uuid}", options, callback
 
   whoami: (callback) =>
-    @_request('get', '/v2/whoami')
-      .end (error, response) =>
-        return callback error if error?
-        return callback new Error 'Invalid Response Code' unless response.ok
-        return callback new Error 'Invalid Device' if _.isEmpty response.body
-        callback null, response.body
+    options = @_getDefaultRequestOptions()
+    @request.get "/v2/whoami", options, (error, response) =>
+      return callback error if error?
+      return callback new Error 'Invalid Response' if _.isEmpty response
+      callback null, response
 
-  _url: (pathname) =>
-    theUrl = new ParseUrl('')
-    theUrl.set 'hostname', @hostname
-    theUrl.set 'protocol', @protocol
-    theUrl.set 'port', @port
-    theUrl.set 'pathname', pathname
-    return theUrl.toString()
-
-  _request: (method, uri) =>
-    theRequest = request[method](@_url uri)
-
-    theRequest.auth @uuid, @token if @uuid? && @token?
-    theRequest.set('Authorization', "Bearer #{@bearerToken}") if @bearerToken?
-    theRequest.accept('application/json')
-    theRequest.set('Content-Type', 'application/json')
-    return theRequest
+  _getDefaultRequestOptions: =>
+    return { @uuid, @token, @bearerToken }
 
 module.exports = MeshbluHttp
