@@ -1,4 +1,4 @@
-MeshbluRequest = require './meshblu-request'
+MeshbluRequest = require './meshblu-request.coffee'
 
 #It's dumb, but it saves ~60k!
 defaults = require 'lodash/defaults'

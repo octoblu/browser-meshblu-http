@@ -15,7 +15,7 @@ _ = {
   takeRight: require 'lodash/takeRight'
 }
 
-discardReturn = require './discard-return'
+discardReturn = require './discard-return.coffee'
 
 class MeshbluRequest
   constructor: (options={}) ->
