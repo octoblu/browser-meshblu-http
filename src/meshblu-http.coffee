@@ -21,6 +21,7 @@ class MeshbluHttp
     try port = parseInt port
     protocol ?= 'https:' if port == 443
     protocol ?= 'http:'
+    secure   ?= true
     domain   ?= 'octoblu.com'
     service  ?= 'meshblu'
 
