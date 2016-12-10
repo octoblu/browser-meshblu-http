@@ -11,7 +11,7 @@ class MeshbluHttp
     throw new Error("MeshbluHttp only allows hostname: 'server' is not allowed") if meshbluConfig?.server
     throw new Error("MeshbluHttp only allows hostname: 'host' is not allowed") if meshbluConfig?.host
 
-    options = _.extend port: 443, hostname: 'meshblu.octoblu.com', meshbluConfig
+    options = _.extend port: 443, hostname: 'meshblu-http.octoblu.com', meshbluConfig
 
     {@uuid, @token, @bearerToken} = options
     {protocol, hostname, port} = options
