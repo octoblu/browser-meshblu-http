@@ -53,11 +53,12 @@ class MeshbluHttp
     options.query = query
     @request.get "/v2/devices", options, callback
 
-  search: ({query, projection}, callback) =>
+  search: ({query, projection, as}, callback) =>
     options = @_getDefaultRequestOptions()
     options.body = query
     options.headers ?= {}
     options.headers['X-MESHBLU-PROJECTION'] = JSON.stringify projection if projection?
+    options.headers['X-MESHBLU-AS'] = as if as?
 
     @request.post '/search/devices', options, (error, response=[]) =>
       return callback error if error?
