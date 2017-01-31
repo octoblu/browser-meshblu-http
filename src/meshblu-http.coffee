@@ -1,10 +1,16 @@
 MeshbluRequest = require './meshblu-request.coffee'
 
 #It's dumb, but it saves ~60k!
-defaults = require 'lodash/defaults'
-extend   = require 'lodash/extend'
-isEmpty  = require 'lodash/isEmpty'
-_ = {defaults, extend, isEmpty}
+defaults      = require 'lodash/defaults'
+extend        = require 'lodash/extend'
+isEmpty       = require 'lodash/isEmpty'
+isString      = require 'lodash/isString'
+isBoolean     = require 'lodash/isBoolean'
+isNumber      = require 'lodash/isNumber'
+isPlainObject = require 'lodash/isPlainObject'
+transform     = require 'lodash/transform'
+kebabCase     = require 'lodash/kebabCase'
+_             = {defaults, extend, isEmpty, isString, isBoolean, isNumber, isPlainObject, transform, kebabCase}
 
 class MeshbluHttp
   constructor: (meshbluConfig) ->
@@ -45,8 +51,15 @@ class MeshbluHttp
       return callback null if _.isEmpty response
       return callback null, response
 
-  device: (uuid, callback) =>
+  device: (uuid, rest...) =>
+    [callback] = rest
+    [metadata, callback] = rest if _.isPlainObject callback
+    metadata ?= {}
+    @_device uuid, metadata, callback
+
+  _device: (uuid, metadata, callback=->) =>
     options = @_getDefaultRequestOptions()
+    options.headers = _.extend {}, @_getMetadataHeaders(metadata), options.headers
     @request.get "/v2/devices/#{uuid}", options, callback
 
   devices: (query, callback) =>
@@ -133,5 +146,19 @@ class MeshbluHttp
 
   _getDefaultRequestOptions: =>
     return { @uuid, @token, @bearerToken }
+
+  _getMetadataHeaders: (metadata) =>
+    _.transform metadata, (newMetadata, value, key) =>
+      kebabKey = _.kebabCase key
+      newMetadata["x-meshblu-#{kebabKey}"] = @_possiblySerializeHeaderValue value
+      return true
+    , {}
+
+  # because request doesn't serialize arrays correctly for headers.
+  _possiblySerializeHeaderValue: (value) =>
+    return value if _.isString value
+    return value if _.isBoolean value
+    return value if _.isNumber value
+    return JSON.stringify value
 
 module.exports = MeshbluHttp
