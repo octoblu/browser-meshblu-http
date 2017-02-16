@@ -33,6 +33,10 @@ class MeshbluHttp
 
     @request = new MeshbluRequest {protocol, hostname, port, resolveSrv, domain, service, secure}
 
+  authenticate: (callback) =>
+    options = @_getDefaultRequestOptions()
+    @request.post "/authenticate", options, callback
+
   claimdevice: (uuid, callback) =>
     options = @_getDefaultRequestOptions()
     @request.post "/claimdevice/#{uuid}", options, callback

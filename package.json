@@ -1,6 +1,6 @@
 {
   "name": "browser-meshblu-http",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "description": "Meshblu Client for the Browser",
   "main": "./index.js",
   "browser": {
