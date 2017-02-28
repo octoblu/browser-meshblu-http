@@ -1,7 +1,7 @@
-dns        = require 'http-dns'
-qs         = require 'qs'
-superagent = require 'superagent'
-url        = require 'url'
+qs          = require 'qs'
+SrvFailover = require 'srv-failover'
+superagent  = require 'superagent'
+URL         = require 'url'
 
 _ = {
   defaults:  require 'lodash/defaults'
@@ -13,15 +13,22 @@ _ = {
   pick:      require 'lodash/pick'
   split:     require 'lodash/split'
   takeRight: require 'lodash/takeRight'
+  toLower:   require 'lodash/toLower'
 }
+_ = require 'lodash'
 
 discardReturn = require './discard-return.coffee'
 
 class MeshbluRequest
   constructor: (options={}) ->
     {@protocol, @hostname, @port} = options
-    {@service, @domain, @secure, @resolveSrv} = options
+    {service, domain, secure, resolveSrv} = options
     {@dnsHttpServer} = options
+
+    return unless resolveSrv
+    protocol = 'http'
+    protocol = 'https' if secure
+    @srvFailover = new SrvFailover {domain, service, protocol}
 
   delete: (pathname, options, callback) =>
     requestOptions = _.pick(options, 'uuid', 'token', 'bearerToken', 'headers')
@@ -30,7 +37,7 @@ class MeshbluRequest
 
     @_resolveBaseUrl (error, baseUri) =>
       return callback error if error?
-      @_request('delete', baseUri, requestOptions).query(query).end @_handleResponse(callback)
+      @_doRequest({method: 'delete', baseUri, requestOptions, query}, callback)
 
   get: (pathname, options, callback) =>
     requestOptions = _.pick(options, 'uuid', 'token', 'bearerToken', 'headers')
@@ -39,7 +46,7 @@ class MeshbluRequest
 
     @_resolveBaseUrl (error, baseUri) =>
       return callback error if error?
-      @_request('get', baseUri, requestOptions).query(query).end @_handleResponse(callback)
+      @_doRequest({method: 'get', baseUri, requestOptions, query}, callback)
 
   patch: (pathname, options, callback) =>
     requestOptions = _.pick(options, 'uuid', 'token', 'bearerToken', 'headers')
@@ -48,7 +55,7 @@ class MeshbluRequest
 
     @_resolveBaseUrl (error, baseUri) =>
       return callback error if error?
-      @_request('patch', baseUri, requestOptions).send(body).end @_handleResponse(callback)
+      @_doRequest({method: 'patch', baseUri, requestOptions, body}, callback)
 
   post: (pathname, options, callback) =>
     requestOptions = _.pick(options, 'uuid', 'token', 'bearerToken', 'headers')
@@ -57,7 +64,7 @@ class MeshbluRequest
 
     @_resolveBaseUrl (error, baseUri) =>
       return callback error if error?
-      @_request('post', baseUri, requestOptions).send(body).end @_handleResponse(callback)
+      @_doRequest({method: 'post', baseUri, requestOptions, body}, callback)
 
   put: (pathname, options, callback) =>
     requestOptions = _.pick(options, 'uuid', 'token', 'bearerToken', 'headers')
@@ -66,24 +73,13 @@ class MeshbluRequest
 
     @_resolveBaseUrl (error, baseUri) =>
       return callback error if error?
-      @_request('put', baseUri, requestOptions).send(body).end @_handleResponse(callback)
+      @_doRequest({method: 'put', baseUri, requestOptions, body}, callback)
 
-  _getDomain: =>
-    parts       = _.split @hostname, '.'
-    domainParts = _.takeRight parts, 2
-    return _.join domainParts, '.'
-
-  _getSrvAddress: =>
-    return "_#{@service}._#{@_getSrvProtocol()}.#{@domain}"
-
-  _getSrvProtocol: =>
-    return 'https' if @secure
-    return 'http'
-
-  _getSubdomain: =>
-    parts          = _.split @hostname, '.'
-    subdomainParts = _.dropRight parts, 2
-    return _.join subdomainParts, '.'
+  _doRequest: ({method, baseUri, requestOptions, query, body}, callback) =>
+    @_request(method, baseUri, requestOptions).query(query).send(body).end (error, response)=>
+      if error?.crossDomain
+        return @_retrySrvRequest(error, @_doRequest, {method, baseUri, requestOptions, query, body}, callback)
+      @_handleResponse(callback)(error, response)
 
   _handleResponse: (callback) => (error, response) =>
     return callback error if error?
@@ -92,6 +88,7 @@ class MeshbluRequest
     return callback null, response.body
 
   _request: (method, baseUri, {pathname, uuid, token, bearerToken, headers}) =>
+    method = _.toLower method
     theRequest = superagent[method](@_url baseUri, pathname)
     theRequest.auth uuid, token if uuid? && token?
     theRequest.set('Authorization', "Bearer #{bearerToken}") if bearerToken?
@@ -104,23 +101,20 @@ class MeshbluRequest
   _resolveBaseUrl: (cb) =>
     callback = discardReturn cb
 
-    return callback null, url.format {@protocol, @hostname, @port} unless @resolveSrv
+    return callback null, URL.format {@protocol, @hostname, @port} unless @srvFailover?
+    @srvFailover.resolveUrl cb
 
-    dns.resolveSrv @_getSrvAddress(), (error, addresses) =>
+  _retrySrvRequest: (error, request, options, callback) =>
+    return callback error unless @srvFailover?
+
+    {method, baseUri, requestOptions, query, body} = options
+    @srvFailover.markBadUrl baseUri, ttl: 60000
+    @srvFailover.resolveUrl (error, baseUri) =>
       return callback error if error?
-      return callback new Error('SRV record found, but contained no valid addresses') if _.isEmpty addresses
-      return callback null, @_resolveUrlFromAddresses(addresses)
-
-  _resolveUrlFromAddresses: (addresses) =>
-    address = _.minBy addresses, 'priority'
-    return url.format {
-      protocol: @_getSrvProtocol()
-      hostname: address.name
-      port: address.port
-    }
+      return request {method, baseUri, requestOptions, query, body}, callback
 
   _url: (baseUri, pathname) =>
-    {protocol, hostname, port} = url.parse baseUri
-    return url.format({ hostname, protocol, port, pathname })
+    {protocol, hostname, port} = URL.parse baseUri
+    return URL.format({ hostname, protocol, port, pathname })
 
 module.exports = MeshbluRequest

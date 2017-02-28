@@ -1,6 +1,6 @@
 {
   "name": "browser-meshblu-http",
-  "version": "6.3.2",
+  "version": "6.4.0",
   "description": "Meshblu Client for the Browser",
   "main": "./index.js",
   "browser": {
@@ -30,7 +30,7 @@
     "chai": "^3.4.1",
     "coffee-coverage": "^1.0.0",
     "coffee-loader": "^0.7.2",
-    "coffee-script": "^1.12.3",
+    "coffee-script": "^1.12.4",
     "compression-webpack-plugin": "^0.3.2",
     "istanbul": "^0.4.2",
     "mocha": "^3.2.0",
@@ -42,9 +42,9 @@
   },
   "dependencies": {
     "btoa": "^1.1.2",
-    "http-dns": "^3.0.1",
     "lodash": "^4.17.4",
     "qs": "^6.3.1",
+    "srv-failover": "^1.0.4",
     "superagent": "^3.4.3",
     "url-parse": "^1.0.5"
   }
