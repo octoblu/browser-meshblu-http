@@ -78,7 +78,7 @@ class MeshbluRequest
   _doRequest: ({method, baseUri, requestOptions, query, body}, callback) =>
     @_request(method, baseUri, requestOptions).query(query).send(body).end (error, response)=>
       if error?.crossDomain
-        return @_retrySrvRequest(error, @_doRequest, {method, baseUri, requestOptions, query, body}, callback)
+        return @_retrySrvRequest(error, {method, baseUri, requestOptions, query, body}, callback)
       @_handleResponse(callback)(error, response)
 
   _handleResponse: (callback) => (error, response) =>
@@ -104,14 +104,14 @@ class MeshbluRequest
     return callback null, URL.format {@protocol, @hostname, @port} unless @srvFailover?
     @srvFailover.resolveUrl cb
 
-  _retrySrvRequest: (error, request, options, callback) =>
+  _retrySrvRequest: (error, options, callback) =>
     return callback error unless @srvFailover?
 
     {method, baseUri, requestOptions, query, body} = options
     @srvFailover.markBadUrl baseUri, ttl: 60000
     @srvFailover.resolveUrl (error, baseUri) =>
       return callback error if error?
-      return request {method, baseUri, requestOptions, query, body}, callback
+      return @_doRequest {method, baseUri, requestOptions, query, body}, callback
 
   _url: (baseUri, pathname) =>
     {protocol, hostname, port} = URL.parse baseUri
