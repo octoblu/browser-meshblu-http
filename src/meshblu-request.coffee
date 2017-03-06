@@ -35,7 +35,7 @@ class MeshbluRequest
     requestOptions.pathname = pathname
     query = qs.stringify options.query
 
-    @_resolveBaseUrl (error, baseUri) =>
+    @_resolveBaseUrl pathname, (error, baseUri) =>
       return callback error if error?
       @_doRequest({method: 'delete', baseUri, requestOptions, query}, callback)
 
@@ -44,7 +44,7 @@ class MeshbluRequest
     requestOptions.pathname = pathname
     query = qs.stringify options.query
 
-    @_resolveBaseUrl (error, baseUri) =>
+    @_resolveBaseUrl pathname, (error, baseUri) =>
       return callback error if error?
       @_doRequest({method: 'get', baseUri, requestOptions, query}, callback)
 
@@ -53,7 +53,7 @@ class MeshbluRequest
     requestOptions.pathname = pathname
     body = options.body
 
-    @_resolveBaseUrl (error, baseUri) =>
+    @_resolveBaseUrl pathname, (error, baseUri) =>
       return callback error if error?
       @_doRequest({method: 'patch', baseUri, requestOptions, body}, callback)
 
@@ -62,7 +62,7 @@ class MeshbluRequest
     requestOptions.pathname = pathname
     body = options.body
 
-    @_resolveBaseUrl (error, baseUri) =>
+    @_resolveBaseUrl pathname, (error, baseUri) =>
       return callback error if error?
       @_doRequest({method: 'post', baseUri, requestOptions, body}, callback)
 
@@ -71,7 +71,7 @@ class MeshbluRequest
     requestOptions.pathname = pathname
     body = options.body
 
-    @_resolveBaseUrl (error, baseUri) =>
+    @_resolveBaseUrl pathname, (error, baseUri) =>
       return callback error if error?
       @_doRequest({method: 'put', baseUri, requestOptions, body}, callback)
 
@@ -87,6 +87,8 @@ class MeshbluRequest
     return callback new Error 'Invalid Response Code' unless response.ok
     return callback null, response.body
 
+  _inBrowser: => window?
+
   _request: (method, baseUri, {pathname, uuid, token, bearerToken, headers}) =>
     method = _.toLower method
     theRequest = superagent[method](@_url baseUri, pathname)
@@ -98,11 +100,20 @@ class MeshbluRequest
       theRequest.set key, value
     return theRequest
 
-  _resolveBaseUrl: (cb) =>
+  _resolveBaseUrl: (pathname, cb) =>
     callback = discardReturn cb
 
     return callback null, URL.format {@protocol, @hostname, @port} unless @srvFailover?
-    @srvFailover.resolveUrl cb
+
+    @srvFailover.resolveUrl (error, baseUrl) =>
+      return callback error if error?
+      return callback null, baseUrl if @_inBrowser()
+
+      superagent.options(@_url(baseUrl, pathname)).end (error, response) =>
+        if error?#  || response.statusCode != 204
+          @srvFailover.markBadUrl baseUrl, ttl: 60000
+          return @_resolveBaseUrl pathname, callback
+        return callback null, baseUrl
 
   _retrySrvRequest: (error, options, callback) =>
     return callback error unless @srvFailover?
