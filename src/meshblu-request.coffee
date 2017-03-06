@@ -109,7 +109,7 @@ class MeshbluRequest
       return callback error if error?
       return callback null, baseUrl if @_inBrowser()
 
-      superagent.options(@_url(baseUrl, pathname)).end (error, response) =>
+      superagent.options(@_url(baseUrl, pathname)).end (error) =>
         if error?#  || response.statusCode != 204
           @srvFailover.markBadUrl baseUrl, ttl: 60000
           return @_resolveBaseUrl pathname, callback
