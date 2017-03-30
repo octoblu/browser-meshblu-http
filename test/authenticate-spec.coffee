@@ -17,6 +17,7 @@ describe 'Authenticate', ->
         port: @meshblu.address().port
         uuid: 'some-uuid'
         token: 'some-token'
+        serviceName: 'browser-meshblu-http-test'
 
       @sut = new MeshbluHttp meshbluConfig
 
@@ -26,6 +27,7 @@ describe 'Authenticate', ->
         @authenticate = @meshblu
           .post '/authenticate'
           .set 'Authorization', "Basic #{auth}"
+          .set 'x-meshblu-service-name', 'browser-meshblu-http-test'
           .reply 204
 
         @sut.authenticate done

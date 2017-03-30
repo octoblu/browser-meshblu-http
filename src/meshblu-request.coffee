@@ -21,9 +21,17 @@ discardReturn = require './discard-return.coffee'
 
 class MeshbluRequest
   constructor: (options={}) ->
-    {@protocol, @hostname, @port} = options
-    {service, domain, secure, resolveSrv} = options
-    {@dnsHttpServer} = options
+    {
+      @protocol
+      @hostname
+      @port
+      service
+      domain
+      secure
+      resolveSrv
+      @dnsHttpServer
+      @serviceName
+    } = options
 
     return unless resolveSrv
     protocol = 'http'
@@ -94,6 +102,7 @@ class MeshbluRequest
     theRequest = superagent[method](@_url baseUri, pathname)
     theRequest.auth uuid, token if uuid? && token?
     theRequest.set('Authorization', "Bearer #{bearerToken}") if bearerToken?
+    theRequest.set('x-meshblu-service-name', @serviceName) if @serviceName?
     theRequest.accept('application/json')
     theRequest.set('Content-Type', 'application/json')
     _.each headers, (value, key) =>

@@ -19,9 +19,19 @@ class MeshbluHttp
 
     options = _.extend port: 443, hostname: 'meshblu-http.octoblu.com', meshbluConfig
 
-    {@uuid, @token, @bearerToken} = options
-    {protocol, hostname, port} = options
-    {resolveSrv, domain, service, secure} = options
+    {
+      @uuid
+      @token
+      @bearerToken
+      protocol
+      hostname
+      port
+      resolveSrv
+      domain
+      service
+      secure
+      serviceName
+    } = options
 
     protocol = null if protocol == 'websocket'
     try port = parseInt port
@@ -31,7 +41,7 @@ class MeshbluHttp
     domain   ?= 'octoblu.com'
     service  ?= 'meshblu'
 
-    @request = new MeshbluRequest {protocol, hostname, port, resolveSrv, domain, service, secure}
+    @request = new MeshbluRequest {protocol, hostname, port, resolveSrv, domain, service, secure, serviceName}
 
   authenticate: (callback) =>
     options = @_getDefaultRequestOptions()
