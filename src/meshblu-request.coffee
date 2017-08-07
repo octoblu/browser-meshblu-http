@@ -15,7 +15,6 @@ _ = {
   takeRight: require 'lodash/takeRight'
   toLower:   require 'lodash/toLower'
 }
-_ = require 'lodash'
 
 discardReturn = require './discard-return.coffee'
 
